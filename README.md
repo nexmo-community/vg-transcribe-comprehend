@@ -46,7 +46,7 @@ Launch the Transcribe & Comprehend connector as a Docker instance:
 ```bash
 docker-compose up
 ```
-Your Docker container's public hostname and port will be used by your Vonage Voice API application as part of the websocket uri `wss://<docker_host_name>:<proxy_port>`, e.g. `wss://my_server.my_domain.com:40000`
+Your Docker container's public hostname and port will be used by your Vonage Voice API application as part of the websocket uri `wss://<docker_host_name>:<proxy_port>`, e.g. `wss://myserver.mydomain.com:40000`
 
 ### Local deployment
 
@@ -72,14 +72,14 @@ Launch the connector service:
 python server.py
 ```
 
-Your server's public hostname and port will be used by your Vonage Voice API application as part of the websocket uri `wss://<server_host_name>:<port>`, e.g. `wss://abcdef123456.ngrok.io`
+Your server's public hostname and port will be used by your Vonage Voice API application as part of the websocket uri `wss://<serverhostname>:<port>`, e.g. `wss://abcdef123456.ngrok.io`
 
 ### Command Line Heroku deployment
 
 Deploy this connector application to Heroku from the command line using the Heroku CLI:
 
 ```bash
-heroku create my_app_name
+heroku create myappname
 ```
 
 On your Heroku dashboard where your connector application page is shown, click on `Settings` button,
@@ -92,13 +92,13 @@ AWS_DEFAULT_REGION</br>
 git push heroku master
 ```
 
-On your Heroku dashboard where your connector application page is shown, click on `Open App` button, that URL will be the one to be used by your Vonage Voice API application as part of the websocket uri, e.g. `wss://my_app_name.herokuapp.com` 
+On your Heroku dashboard where your connector application page is shown, click on `Open App` button, that URL will be the one to be used by your Vonage Voice API application as part of the websocket uri, e.g. `wss://myappname.herokuapp.com` 
 
 ### 1-click Heroku deployment
 
 Click the 'Deploy to Heroku' button at the top of this page, and follow the instructions to enter the 3 parameter respective values retrieved from your AWS account.
 
-Once deployed, on the Heroku dashboard where your connector application page is shown, click on `Open App` button, that URL will be the one to be used by your Vonage Voice API application as part of the websocket uri, e.g. `wss://my_app_name.herokuapp.com`.
+Once deployed, on the Heroku dashboard where your connector application page is shown, click on `Open App` button, that URL will be the one to be used by your Vonage Voice API application as part of the websocket uri, e.g. `wss://myappname.herokuapp.com`.
 
 ## Usage capacity
 
