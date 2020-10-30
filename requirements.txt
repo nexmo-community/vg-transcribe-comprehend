@@ -1,0 +1,25 @@
+backports-abc==0.5
+certifi==2020.6.20
+packaging==20.4
+pyparsing==2.4.7
+requests==2.24.0
+
+# The following includes a patch which is awaiting upstream merging at
+# https://github.com/sam-washington/requests-aws4auth/pull/32
+# requests-aws4auth==0.9
+git+git://github.com/tbass134/requests-aws4auth.git@7f0a747c52b6913dcce71f82c8d8cadd4ecd9fcc
+
+singledispatch==3.4.0.3
+six==1.15.0
+
+# notebook 6.1.1 requires tornado>=5.0, but you'll have tornado 4.5.3 which is incompatible.
+# distributed 2.30.0 requires tornado>=6.0.3; python_version >= "3.8", but you'll have tornado 4.5.3 which is incompatible.
+# bokeh 2.2.1 requires tornado>=5.1, but you'll have tornado 4.5.3 which is incompatible.
+# do NOT use tornado v5 or v6 b/c of error ".../lib/python3.8/asyncio/base_events.py", in _check_running, raise RuntimeError('This event loop is already running')
+tornado==6.0.4
+
+webrtcvad==2.0.10
+python-dotenv==0.14.0
+aiofile==3.1.1
+amazon-transcribe==0.1.0
+boto3==1.15.17
