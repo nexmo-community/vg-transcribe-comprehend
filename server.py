@@ -61,18 +61,14 @@ MS_PER_FRAME = 20  # Duration of a frame in ms
 conns = {}
 
 # Environment variables (local deployment: .env file)
-PORT = os.getenv("PORT") # Do not set for Heroku deployment
+PORT = os.getenv("PORT") # Do not set as Config Vars for Heroku deployment
 REGION = os.getenv("REGION", default = "us-east-1")
+TRANSCRIBE_LANGUAGE_CODE = os.getenv("TRANSCRIBE_LANGUAGE_CODE", default = "en-US")
 
-# to do: derivate from transcribe language
-LANGUAGE_FOR_SENTIMENT = os.getenv("LANGUAGE_FOR_SENTIMENT", default = "en")
+# Derivate sentiment language from transcribe language
+SENTIMENT_LANGUAGE = TRANSCRIBE_LANGUAGE_CODE[:2]   # e.g. "en"
 
 DELETE_RECORDING = os.getenv("DELETE_RECORDING", default = True)
-
-#--------------------------
-
-def nothing():
-    print('nothing ...')
 
 #-------------------------------- Transcribe main -----------------------------
 
@@ -93,7 +89,8 @@ class MyEventHandler(TranscriptResultStreamHandler):
                 # print(alt.transcript)
 #--     
 
-async def basic_transcribe(file, transcript, media_sample_rate_hz=8000, language_code="en-US", region="us-east-1"):
+async def basic_transcribe(file, transcript, media_sample_rate_hz=8000, language_code=TRANSCRIBE_LANGUAGE_CODE, region=REGION):
+    
     client = TranscribeStreamingClient(region=region)
 
     stream = await client.start_stream_transcription(
@@ -159,10 +156,7 @@ class BufferedPipe(object):
 
 
 class TranscribeComprehendProcessor(object):
-    def __init__(self, path, rate, clip_min, aws_region, aws_id, aws_secret, requestor_id, transcribe_comprehend_url, entity, do_sentiment):
-        self._aws_region = aws_region   # Not used yet
-        self._aws_id = aws_id           # Not used yet
-        self._aws_secret = aws_secret   # Not used yet 
+    def __init__(self, path, rate, clip_min, requestor_id, transcribe_comprehend_url, entity, do_sentiment):
         self.rate = rate
         self.bytes_per_frame = rate/25
         self._path = path
@@ -207,18 +201,10 @@ class TranscribeComprehendProcessor(object):
             del(x)
 
             #-----------------
-
-            # auth = AWS4Auth(self._aws_id, self._aws_secret,
-            #                 self._aws_region, 'lex', unsign_payload=True)
-
-            # info(">>> auth:")
-            # info(auth)
-
-            #-----------------
          
             if self.transcript != '' :
                 if (self.do_sentiment) :
-                    self.sentiment = comprehend.detect_sentiment(Text=self.transcript, LanguageCode='en')
+                    self.sentiment = comprehend.detect_sentiment(Text=self.transcript, LanguageCode=SENTIMENT_LANGUAGE)
                     
                     self.payload_raw = {
                         "transcript": self.transcript,
@@ -312,7 +298,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             # info(">>> rate")
             # info(self.rate)            
 
-            region = data.get('aws_region', 'us-east-1')
             clip_min = int(data.get('clip_min', 200))
             clip_max = int(data.get('clip_max', 10000))
             silence_time = int(data.get('silence_time', 400))
@@ -337,7 +322,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             self.vad.set_mode(sensitivity)
             self.silence = silence_time // MS_PER_FRAME
             self.processor = TranscribeComprehendProcessor(
-                self.path, self.rate, clip_min, region, data['aws_key'], data['aws_secret'], self.client_id, self.webhook_url, self.entity, self.do_sentiment).process
+                self.path, self.rate, clip_min, self.client_id, self.webhook_url, self.entity, self.do_sentiment).process
             self.frame_buffer = BufferedPipe(
                 clip_max // MS_PER_FRAME, self.processor)
             self.write_message('ok')
