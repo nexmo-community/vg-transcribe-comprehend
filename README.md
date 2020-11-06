@@ -76,6 +76,13 @@ Your server's public hostname and port will be used by your Vonage Voice API app
 
 ### Command Line Heroku deployment
 
+If you do not yet have a local git repository, create one:</br>
+```bash
+git init
+git add .
+git commit -am "initial"
+```
+
 Deploy this connector application to Heroku from the command line using the Heroku CLI:
 
 ```bash
