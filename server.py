@@ -22,6 +22,8 @@ from queue import Queue
 import time
 import logging
 
+import psutil
+
 from amazon_transcribe.client import TranscribeStreamingClient
 from amazon_transcribe.handlers import TranscriptResultStreamHandler
 from amazon_transcribe.model import TranscriptEvent
@@ -45,6 +47,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 #-------------------------
+
+connected = 0
+disconnected = 0
 
 # format = '%(asctime)s: %(message)s'
 # logging.basicConfig(format=format, level=logging.DEBUG, datefmt='%H:%M:%S')
@@ -169,35 +174,35 @@ class TranscribeComprehendProcessor(object):
     async def process(self, count, payload, id):
         if count > self.clip_min_frames:  # If the buffer is less than CLIP_MIN_MS, ignore it
             
-            fn = "{}rec-{}-{}.wav".format('./recordings/', id,
+            self.fn = "{}rec-{}-{}.wav".format('./recordings/', id,
                                           datetime.datetime.now().strftime("%Y%m%dT%H%M%S"))
-            output = wave.open(fn, 'wb')
+            output = wave.open(self.fn, 'wb')
             output.setparams(
                 (1, 2, self.rate, 0, 'NONE', 'not compressed'))
             output.writeframes(payload)
             output.close()
-            debug('File written {}'.format(fn))
+            debug('File written {}'.format(self.fn))
             
-            queue = Queue()
-            x = Thread(target=asyncio.run, args=(basic_transcribe(file=fn,transcript=queue), ))
+            self.q = Queue()
+            x = Thread(target=asyncio.run, args=(basic_transcribe(file=self.fn,transcript=self.q), ))
             x.start()
 
-            checkqueue = True
+            self.checkqueue = True
             
-            while (checkqueue):
+            while (self.checkqueue):
             	try:
-            		self.transcript = queue.get(False)
-            		checkqueue = False
+            		self.transcript = self.q.get(False)
+            		self.checkqueue = False
             		if (DELETE_RECORDING):
-            			os.remove(fn)
+            			os.remove(self.fn)
             		break
             	except:
             		self.transcript = None
             		await asyncio.sleep(1)
 
-            print('>>>> transcript:', self.transcript)
+            print('Transcript:', self.transcript)
             
-            queue.task_done()
+            self.q.task_done()
             del(x)
 
             #-----------------
@@ -211,23 +216,23 @@ class TranscribeComprehendProcessor(object):
                         "entity": self.entity,
                         "sentiment": self.sentiment,
                         "client_id": self.client_id,
-                        "service": "Transcribe+Comprehend"
+                        "service": "AWS Transcribe+Comprehend"
                     }
                 else:
                     self.payload_raw = {
                         "transcript": str(self.transcript),
                         "entity": str(self.entity),
                         "client_id": self.client_id,
-                        "service": "Transcribe"
+                        "service": "AWS Transcribe"
                     }
 
-                self.payload = json.dumps(self.payload_raw)
+                self.payload_out = json.dumps(self.payload_raw)
                 info('payload')
-                info(self.payload)
+                info(self.payload_out)
 
                 # Posting results back via webhook
                 if (self.webhook_url):
-                	a = requests.post(self.webhook_url, data=self.payload, headers={'Content-Type': 'application/json'})
+                	a = requests.post(self.webhook_url, data=self.payload_out, headers={'Content-Type': 'application/json'})
 
         else:
             info('Discarding {} frames'.format(str(count)))
@@ -270,7 +275,10 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         conns[self.id] = self
 
     async def open(self, path):
-        info("client connected")
+        # info("client connected")
+        global connected
+        connected = connected + 1
+        print(">>> client connected: ", connected)
         debug(self.request.uri)
         self.path = self.request.uri
         self.tick = 0
@@ -330,7 +338,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         # Remove the connection from the list of connections
         del conns[self.id]
-        info("client disconnected")
+        # info("client disconnected")
+
+        global disconnected
+        disconnected = disconnected + 1
+        print("<<< client disconnected: ", disconnected)
+
 
 #------------------------ Web server basic service check ----------------------        
 
