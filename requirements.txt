@@ -16,7 +16,7 @@ six==1.15.0
 # distributed 2.30.0 requires tornado>=6.0.3; python_version >= "3.8", but you'll have tornado 4.5.3 which is incompatible.
 # bokeh 2.2.1 requires tornado>=5.1, but you'll have tornado 4.5.3 which is incompatible.
 # do NOT use tornado v5 or v6 b/c of error ".../lib/python3.8/asyncio/base_events.py", in _check_running, raise RuntimeError('This event loop is already running')
-tornado==6.0.4
+tornado==6.3.3
 
 webrtcvad==2.0.10
 python-dotenv==0.14.0
