@@ -2,7 +2,7 @@ backports-abc==0.5
 certifi==2020.6.20
 packaging==20.4
 pyparsing==2.4.7
-requests==2.24.0
+requests==2.31.0
 
 # The following includes a patch which is awaiting upstream merging at
 # https://github.com/sam-washington/requests-aws4auth/pull/32
